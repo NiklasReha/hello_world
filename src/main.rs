@@ -268,13 +268,7 @@ impl Cells{
     }
 
     pub fn update_status(&mut self){
-        /*if self.neighbors>3 || self.neighbors<2{
-            self.status = 0;
-        }
-        else if self.neighbors == 3{
-            self.status = 1;
-        }*/
-        self.status=1*(self.neighbors == 3 )as i32+self.status*((self.neighbors==2) as i32);
+        self.status=1*(self.neighbors == 3 )as i32+self.status*(self.neighbors==2) as i32;
     }
 }
 
