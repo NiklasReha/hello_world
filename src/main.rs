@@ -18,12 +18,12 @@ fn main() {
 
     if hoehe ==0 || weite ==0{
         println!("Das Programm wird beendet da entweder die Höhe des Feldes oder die Weite des Feldes 0 war!");
-        let _b1 = std::io::stdin().read_line(&mut _h).unwrap();
+        let _b1 = std::io::stdin().read_line(&mut _h).unwrap_or_default();
         return;
     }
     else if hoehe>39||weite>39 {
         println!("Das Feld ist zu groß!");
-        let _b1 = std::io::stdin().read_line(&mut _h).unwrap();
+        let _b1 = std::io::stdin().read_line(&mut _h).unwrap_or_default();
         return;
     }
 
@@ -103,7 +103,7 @@ fn main() {
     }
     stdout.queue(crossterm::cursor::Show).expect("Irgendwas lief falsch");
     println!("Simulation beendet! Drücke ENTER");
-    let _b1 = std::io::stdin().read_line(&mut _h).unwrap();
+    let _b1 = std::io::stdin().read_line(&mut _h).unwrap_or_default();
     WinConsole::output().clear().expect("Irgendwas lief falsch");
 }
 
@@ -111,7 +111,7 @@ pub fn get_sign()->String{
     loop{
         let mut sign=String::new();
         println!("Darstellungszeichen der Zellen: ");
-        let _b1 = std::io::stdin().read_line(&mut sign).unwrap();
+        let _b1 = std::io::stdin().read_line(&mut sign).unwrap_or_default();
         let sign = sign.trim_end();
         if sign.len() == 1{
             return sign.to_string();
@@ -126,10 +126,10 @@ pub fn get_speed()->u64{
     loop{
         let mut speed=String::new();
         println!("Darstellungsgeschwindigkeit der Iterationen: ");
-        let _b1 = std::io::stdin().read_line(&mut speed).unwrap();
+        let _b1 = std::io::stdin().read_line(&mut speed).unwrap_or_default();
         let speed = speed.trim_end();
         if speed.len() > 1 &&check_numeric(speed.to_string()){
-            return speed.parse::<u64>().unwrap();
+            return speed.parse::<u64>().unwrap_or_default();
         }
         else{
             println!("Bitte gib einen Wert größer als 10 an!")
@@ -142,11 +142,11 @@ pub fn get_height()->i32{
     loop{
         let mut height=String::new();
         println!("Hoehe des Feldes: ");
-        let _b1 = std::io::stdin().read_line(&mut height).unwrap();
+        let _b1 = std::io::stdin().read_line(&mut height).unwrap_or_default();
         let height = height.trim_end();
         if height.len()<3{
             if check_numeric(height.to_string()){
-                return height.parse::<i32>().unwrap();
+                return height.parse::<i32>().unwrap_or_default();
             }
             else{
                 println!("Bitte gib nur ganze Zahlen als Wert ein!");
@@ -164,11 +164,11 @@ pub fn get_iterations()->i32{
     loop{
         let mut height=String::new();
         println!("Anzahl der Iteration: ");
-        let _b1 = std::io::stdin().read_line(&mut height).unwrap();
+        let _b1 = std::io::stdin().read_line(&mut height).unwrap_or_default();
         let height = height.trim_end();
         if height.len()<10{
             if check_numeric(height.to_string()){
-                return height.parse::<i32>().unwrap();
+                return height.parse::<i32>().unwrap_or_default();
             }
             else{
                 println!("Bitte gib nur ganze Zahlen als Wert ein!");
@@ -186,11 +186,11 @@ pub fn get_width()->i32{
     loop{
         let mut width=String::new();
         println!("Weite des Feldes: ");
-        let _b1 = std::io::stdin().read_line(&mut width).unwrap();
+        let _b1 = std::io::stdin().read_line(&mut width).unwrap_or_default();
         let width = width.trim_end();
         if width.len()<3{
             if check_numeric(width.to_string()){
-                return width.parse::<i32>().unwrap();
+                return width.parse::<i32>().unwrap_or_default();
             }
             else{
                 println!("Bitte gib nur ganze Zahlen als Wert ein!");
