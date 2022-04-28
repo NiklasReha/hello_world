@@ -269,14 +269,16 @@ impl Cells{
     }
 
     pub fn update_status(&mut self){
-        if self.neighbors>3 || self.neighbors<2{
+        /*if self.neighbors>3 || self.neighbors<2{
             self.status = 0;
         }
         else if self.neighbors == 3{
             self.status = 1;
-        }
+        }*/
+        self.status=1*(self.neighbors == 3 )as i32+self.status*(!(self.neighbors>3 || self.neighbors<2) as i32);
     }
 }
+
 
 #[cfg(test)]
 mod eval {
@@ -374,6 +376,41 @@ mod eval {
         let mut zelle:Cells=Cells{..test[1][1]};
         zelle.get_vertical_value(test);
         assert_eq!(zelle.vertical_value,1);
+    }
+
+    #[test]
+    fn update_status_alive() {
+        let mut zelle =Cells{pos_x:0,pos_y:0,status:0,vertical_value:1,neighbors:3};
+        zelle.update_status();
+        assert_eq!(zelle.status,1);
+    }
+
+    #[test]
+    fn update_status_dead() {
+        let mut zelle =Cells{pos_x:0,pos_y:0,status:1,vertical_value:1,neighbors:4};
+        zelle.update_status();
+        assert_eq!(zelle.status,0);
+    }
+
+    #[test]
+    fn update_status_dead2() {
+        let mut zelle =Cells{pos_x:0,pos_y:0,status:1,vertical_value:1,neighbors:1};
+        zelle.update_status();
+        assert_eq!(zelle.status,0);
+    }
+
+    #[test]
+    fn update_status_unchanged_dead() {
+        let mut zelle =Cells{pos_x:0,pos_y:0,status:0,vertical_value:1,neighbors:2};
+        zelle.update_status();
+        assert_eq!(zelle.status,0);
+    }
+
+    #[test]
+    fn update_status_unchanged_alive() {
+        let mut zelle =Cells{pos_x:0,pos_y:0,status:1,vertical_value:1,neighbors:2};
+        zelle.update_status();
+        assert_eq!(zelle.status,1);
     }
 
     #[test]
