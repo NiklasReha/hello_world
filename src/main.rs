@@ -275,7 +275,7 @@ impl Cells{
         else if self.neighbors == 3{
             self.status = 1;
         }*/
-        self.status=1*(self.neighbors == 3 )as i32+self.status*(!(self.neighbors>3 || self.neighbors<2) as i32);
+        self.status=1*(self.neighbors == 3 )as i32+self.status*((self.neighbors==2) as i32);
     }
 }
 
