@@ -248,9 +248,8 @@ impl Cells{
     pub fn get_neighbors(&mut self,containerarray:Vec<Vec<Cells>>){
         let mut gesamt=self.vertical_value-self.status;
         if containerarray[0].len()>1{
-            if gesamt < 0{
-                gesamt=0;
-            }
+
+            gesamt=gesamt*(gesamt>=0)as i32;
 
             if self.pos_x == 0_usize {
                 self.neighbors = gesamt + containerarray[self.pos_y ][self.pos_x+1].vertical_value;
