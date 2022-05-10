@@ -4,6 +4,7 @@ use std::io::{Write};
 use std::io::stdout;
 use crossterm::{QueueableCommand};
 use win32console::console::WinConsole;
+use term_size;
 
 fn main() {
     let mut stdout = stdout();
@@ -15,17 +16,7 @@ fn main() {
     let iteration:i32= get_iterations();
     let sign:String=get_sign();
     let ten_millis = time::Duration::from_millis(get_speed());
-
-    if hoehe ==0 || weite ==0{
-        println!("Das Programm wird beendet da entweder die Höhe des Feldes oder die Weite des Feldes 0 war!");
-        let _b1 = std::io::stdin().read_line(&mut _h).unwrap_or_default();
-        return;
-    }
-    else if hoehe>39||weite>39 {
-        println!("Das Feld ist zu groß!");
-        let _b1 = std::io::stdin().read_line(&mut _h).unwrap_or_default();
-        return;
-    }
+    
 
     let mut rng = rand::thread_rng();
     let gen = Uniform::from(0..2);
@@ -96,14 +87,14 @@ fn main() {
         ausgabe+=&"\\".to_string();
         ausgabe+=&iteration.to_string();
         ausgabe+=&"\n".to_string();
-        stdout.write(format!("{}", ausgabe).as_bytes()).expect("Irgendwas lief falsch");
+        stdout.write_all(format!("{}", ausgabe).as_bytes()).expect("Irgendwas lief falsch");
         containerarray=temp.clone();
         drip =containerarray.clone();
         thread::sleep(ten_millis);
     }
     stdout.queue(crossterm::cursor::Show).expect("Irgendwas lief falsch");
     println!("Simulation beendet! Drücke ENTER");
-    let _b1 = std::io::stdin().read_line(&mut _h).unwrap_or_default();
+    let _b1 = std::io::stdin().read_line(&mut _h).unwrap();
     WinConsole::output().clear().expect("Irgendwas lief falsch");
 }
 
@@ -111,7 +102,7 @@ pub fn get_sign()->String{
     loop{
         let mut sign=String::new();
         println!("Darstellungszeichen der Zellen: ");
-        let _b1 = std::io::stdin().read_line(&mut sign).unwrap_or_default();
+        let _b1 = std::io::stdin().read_line(&mut sign).unwrap();
         let sign = sign.trim_end();
         if sign.len() == 1{
             return sign.to_string();
@@ -126,10 +117,10 @@ pub fn get_speed()->u64{
     loop{
         let mut speed=String::new();
         println!("Darstellungsgeschwindigkeit der Iterationen: ");
-        let _b1 = std::io::stdin().read_line(&mut speed).unwrap_or_default();
+        let _b1 = std::io::stdin().read_line(&mut speed).unwrap();
         let speed = speed.trim_end();
         if speed.len() > 1 &&check_numeric(speed.to_string()){
-            return speed.parse::<u64>().unwrap_or_default();
+            return speed.parse::<u64>().unwrap();
         }
         else{
             println!("Bitte gib einen Wert größer als 10 an!")
@@ -142,20 +133,24 @@ pub fn get_height()->i32{
     loop{
         let mut height=String::new();
         println!("Hoehe des Feldes: ");
-        let _b1 = std::io::stdin().read_line(&mut height).unwrap_or_default();
+        let _b1 = std::io::stdin().read_line(&mut height).unwrap();
         let height = height.trim_end();
-        if height.len()<3{
-            if check_numeric(height.to_string()){
-                return height.parse::<i32>().unwrap_or_default();
-            }
-            else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein!");
-                println!();
+        let mut he=0;
+        if let Some((_w, h)) = term_size::dimensions() {
+            he=h as i32;
+        } else {
+            println!("Unable to get term size :(")
+        }
+        if check_numeric(height.to_string()){
+            let  result=height.parse::<i32>().unwrap();
+            if result<he-3 && result>2{
+            return result
             }
         }
         else{
-            println!("Der Input ist zu lang!")
-        }    
+            println!("Bitte gib nur ganze Zahlen als Wert ein!");
+            println!();
+        }
     }
 }
 
@@ -164,11 +159,11 @@ pub fn get_iterations()->i32{
     loop{
         let mut height=String::new();
         println!("Anzahl der Iteration: ");
-        let _b1 = std::io::stdin().read_line(&mut height).unwrap_or_default();
+        let _b1 = std::io::stdin().read_line(&mut height).unwrap();
         let height = height.trim_end();
         if height.len()<10{
             if check_numeric(height.to_string()){
-                return height.parse::<i32>().unwrap_or_default();
+                return height.parse::<i32>().unwrap();
             }
             else{
                 println!("Bitte gib nur ganze Zahlen als Wert ein!");
@@ -186,22 +181,27 @@ pub fn get_width()->i32{
     loop{
         let mut width=String::new();
         println!("Weite des Feldes: ");
-        let _b1 = std::io::stdin().read_line(&mut width).unwrap_or_default();
+        let _b1 = std::io::stdin().read_line(&mut width).unwrap();
         let width = width.trim_end();
-        if width.len()<3{
-            if check_numeric(width.to_string()){
-                return width.parse::<i32>().unwrap_or_default();
-            }
-            else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein!");
-                println!();
+        let mut we=0;
+        if let Some((w, _h)) = term_size::dimensions() {
+            we=w as i32;
+        } else {
+            println!("Unable to get term size :(")
+        }
+        if check_numeric(width.to_string()){
+            let result=width.parse::<i32>().unwrap();
+            if result<we/3 && result>2{
+            return result
             }
         }
         else{
-            println!("Der Input ist zu lang!")
+            println!("Bitte gib nur ganze Zahlen als Wert ein!");
+            println!();
         }
     }
-}
+    }
+
 
 pub fn check_numeric(s:String)->bool{
     for c in s.chars(){
@@ -248,8 +248,9 @@ impl Cells{
     pub fn get_neighbors(&mut self,containerarray:Vec<Vec<Cells>>){
         let mut gesamt=self.vertical_value-self.status;
         if containerarray[0].len()>1{
-
-            gesamt=gesamt*(gesamt>=0)as i32;
+            if gesamt < 0{
+                gesamt=0;
+            }
 
             if self.pos_x == 0_usize {
                 self.neighbors = gesamt + containerarray[self.pos_y ][self.pos_x+1].vertical_value;
@@ -268,10 +269,14 @@ impl Cells{
     }
 
     pub fn update_status(&mut self){
-        self.status=1*(self.neighbors == 3 )as i32+self.status*(self.neighbors==2) as i32;
+        if self.neighbors>3 || self.neighbors<2{
+            self.status = 0;
+        }
+        else if self.neighbors == 3{
+            self.status = 1;
+        }
     }
 }
-
 
 #[cfg(test)]
 mod eval {
@@ -369,41 +374,6 @@ mod eval {
         let mut zelle:Cells=Cells{..test[1][1]};
         zelle.get_vertical_value(test);
         assert_eq!(zelle.vertical_value,1);
-    }
-
-    #[test]
-    fn update_status_alive() {
-        let mut zelle =Cells{pos_x:0,pos_y:0,status:0,vertical_value:1,neighbors:3};
-        zelle.update_status();
-        assert_eq!(zelle.status,1);
-    }
-
-    #[test]
-    fn update_status_dead() {
-        let mut zelle =Cells{pos_x:0,pos_y:0,status:1,vertical_value:1,neighbors:4};
-        zelle.update_status();
-        assert_eq!(zelle.status,0);
-    }
-
-    #[test]
-    fn update_status_dead2() {
-        let mut zelle =Cells{pos_x:0,pos_y:0,status:1,vertical_value:1,neighbors:1};
-        zelle.update_status();
-        assert_eq!(zelle.status,0);
-    }
-
-    #[test]
-    fn update_status_unchanged_dead() {
-        let mut zelle =Cells{pos_x:0,pos_y:0,status:0,vertical_value:1,neighbors:2};
-        zelle.update_status();
-        assert_eq!(zelle.status,0);
-    }
-
-    #[test]
-    fn update_status_unchanged_alive() {
-        let mut zelle =Cells{pos_x:0,pos_y:0,status:1,vertical_value:1,neighbors:2};
-        zelle.update_status();
-        assert_eq!(zelle.status,1);
     }
 
     #[test]
