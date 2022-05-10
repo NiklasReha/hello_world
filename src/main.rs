@@ -147,6 +147,9 @@ pub fn get_height()->i32{
             if result<he-3 && result>2{
             return result
             }
+            else{
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-3);
+            }
         }
         else{
             println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-3);
@@ -194,6 +197,9 @@ pub fn get_width()->i32{
             let result=width.parse::<i32>().unwrap();
             if result<we/3 && result>2{
             return result
+            }
+            else{
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3);
             }
         }
         else{
