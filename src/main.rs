@@ -147,11 +147,11 @@ pub fn get_height()->i32{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-3);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-3);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
             println!();
         }
     }
@@ -198,11 +198,11 @@ pub fn get_width()->i32{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-1);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-1);
             println!();
         }
     }
