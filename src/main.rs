@@ -119,7 +119,7 @@ pub fn get_speed()->u64{
         println!("Darstellungsgeschwindigkeit der Iterationen: ");
         let _b1 = std::io::stdin().read_line(&mut speed).unwrap();
         let speed = speed.trim_end();
-        if speed.len() > 1 &&check_numeric(speed.to_string()){
+        if check_numeric(speed.to_string()){
             return speed.parse::<u64>().unwrap();
         }
         else{
