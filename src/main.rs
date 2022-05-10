@@ -26,7 +26,7 @@ fn main() {
         containerarray.insert(x,HashMap::new());
         for d in 0..weite{
             let cell=Cells{neighbors: 0,pos_x:d as usize,pos_y:x as usize,status:gen.sample(&mut rng),vertical_value:0 };
-            containerarray[&x].insert(d,cell);
+            containerarray.get_mut(&x).unwrap().insert(d,cell);
         }
     }
 
@@ -41,7 +41,7 @@ fn main() {
             for d in 0..weite{
                 let mut zelle= Cells{..drip[&x][&d]};                
                 zelle.get_vertical_value(drip.clone());
-                temp[&x].insert(d,Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
+                temp.get_mut(&x).unwrap().insert(d, Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
         }
 
@@ -71,7 +71,7 @@ fn main() {
                 else{
                     ausgabe+=&"   ".to_string();
                 }
-                temp[&x].insert(d,Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
+                temp.get_mut(&x).unwrap().insert(d,Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
             ausgabe+=&"|\n".to_string();
         }
@@ -149,7 +149,7 @@ pub fn get_height()->i32{
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein!");
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-3);
             println!();
         }
     }
@@ -197,12 +197,11 @@ pub fn get_width()->i32{
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein!");
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3);
             println!();
         }
     }
     }
-
 
 pub fn check_numeric(s:String)->bool{
     for c in s.chars(){
