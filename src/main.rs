@@ -8,6 +8,7 @@ use term_size;
 use std::sync::mpsc;
 
 fn main() {
+    let _clean_up = CleanUp;
     let mut _best="y";
     let mut _h=String::new();
     let mut containerarray:Vec<Vec<Cells>>=Vec::new();
@@ -37,11 +38,7 @@ fn main() {
         let mut stdout = stdout();
         stdout.queue(crossterm::cursor::Hide).expect("Irgendwas lief falsch");
         for u in 0..iteration.clone()+1{
-            let mut result:Vec<Vec<Cells>> = Vec::new();
-            match receiver.recv(){
-                Ok(z)=>{result=z}
-                Err(k)=>{println!("Something went wrong {}",k);}
-            }
+            let result:Vec<Vec<Cells>>=receiver.recv().unwrap();
             let mut ausgabe=String::new();
             ausgabe+="   ";
             for _x in 0..weite{
@@ -106,10 +103,7 @@ fn main() {
                 temp[x as usize].push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
         }
-        match sender.send(temp.clone()){
-            Ok(_p)=>{},
-            Err(k)=> println!("Something went wrong, {}",k)
-        };
+        sender.send(temp.clone()).unwrap();
         containerarray=temp.clone();
         drip =containerarray.clone();
     }
@@ -117,6 +111,16 @@ fn main() {
     println!("Simulation beendet! Drücke ENTER");
     let _b1 = std::io::stdin().read_line(&mut _h).unwrap();
     WinConsole::output().clear().expect("Irgendwas lief falsch");
+}
+
+struct CleanUp;
+
+impl Drop for CleanUp {
+    fn drop(&mut self) {
+        let mut stdout=std::io::stdout();
+        stdout.queue(crossterm::cursor::Show).expect("Irgendwas lief falsch");
+        WinConsole::output().clear().expect("Irgendwas lief falsch");
+    }
 }
 
 pub fn get_sign()->String{
