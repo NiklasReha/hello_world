@@ -48,46 +48,46 @@ fn main() {
         temp=Vec::new();
         let mut ausgabe=String::new();
         stdout.queue(crossterm::cursor::MoveTo(0,0)).expect("Irgendwas lief falsch");
-        ausgabe+=&"   ".to_string();
+        ausgabe+="   ";
         for _x in 0..weite{
-        ausgabe+=&"___".to_string();
+        ausgabe+="___";
         }
 
-        ausgabe+=&" \n".to_string();
+        ausgabe+=" \n";
 
         for x in 0..hoehe{
             temp.push(Vec::new());
-            ausgabe+=&"  |".to_string();
+            ausgabe+="  |";
             for d in 0..weite{
                 let mut zelle= Cells{..containerarray[x as usize][d as usize]};
                 zelle.get_neighbors(containerarray.clone());
                 zelle.update_status();
                 if zelle.status == 1{
-                    ausgabe+=&" ".to_string();
+                    ausgabe+=" ";
                     ausgabe+=&sign;
-                    ausgabe+=&" ".to_string();
+                    ausgabe+=" ";
                 }
                 else{
-                    ausgabe+=&"   ".to_string();
+                    ausgabe+="   ";
                 }
                 temp[x as usize].push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
-            ausgabe+=&"|\n".to_string();
+            ausgabe+="|\n";
         }
 
-        ausgabe+=&"  |".to_string();
+        ausgabe+="  |";
 
         for _x in 0..weite{
-            ausgabe+=&"___".to_string();
+            ausgabe+="___";
         }
 
-        ausgabe+=&"|\n".to_string();
-        ausgabe+=&"  Iterationen: ".to_string();
+        ausgabe+="|\n";
+        ausgabe+="  Iterationen: ";
         ausgabe+=&u.to_string();
-        ausgabe+=&"\\".to_string();
+        ausgabe+="\\";
         ausgabe+=&iteration.to_string();
-        ausgabe+=&"\n".to_string();
-        stdout.write_all(format!("{}", ausgabe).as_bytes()).expect("Irgendwas lief falsch");
+        ausgabe+="\n";
+        stdout.write_all(ausgabe.to_string().as_bytes()).expect("Irgendwas lief falsch");
         containerarray=temp.clone();
         drip =containerarray.clone();
         thread::sleep(ten_millis);
@@ -215,7 +215,7 @@ pub fn check_numeric(s:String)->bool{
             return false;
         }
     }
-    return true;
+    true
 }
 
 #[derive(Clone, Copy)]
