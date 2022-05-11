@@ -5,9 +5,9 @@ use std::io::stdout;
 use crossterm::{QueueableCommand};
 use win32console::console::WinConsole;
 use term_size;
+use std::sync::mpsc;
 
 fn main() {
-    let mut stdout = stdout();
     let mut _best="y";
     let mut _h=String::new();
     let mut containerarray:Vec<Vec<Cells>>=Vec::new();
@@ -31,8 +31,57 @@ fn main() {
 
     let mut drip:Vec<Vec<Cells>>=containerarray.clone();
     WinConsole::output().clear().expect("Irgendwas lief falsch");
-    stdout.queue(crossterm::cursor::Hide).expect("Irgendwas lief falsch");
-    for u in 0..iteration+1{
+    let (sender, receiver) = mpsc::channel();
+
+    thread::spawn(move|| {
+        let mut stdout = stdout();
+        stdout.queue(crossterm::cursor::Hide).expect("Irgendwas lief falsch");
+        for u in 0..iteration.clone()+1{
+            let mut result:Vec<Vec<Cells>> = Vec::new();
+            match receiver.recv(){
+                Ok(z)=>{result=z}
+                Err(k)=>{println!("Something went wrong {}",k);}
+            }
+            let mut ausgabe=String::new();
+            ausgabe+="   ";
+            for _x in 0..weite{
+                ausgabe+="___";
+            }
+            ausgabe+=" \n";
+            for x in 0..hoehe{
+                ausgabe+="  |";
+                for d in 0..weite{
+                    let zelle= Cells{..result[x as usize][d as usize]};
+                    if zelle.status == 1{
+                    ausgabe+=" ";
+                    ausgabe+=&sign;
+                    ausgabe+=" ";
+                    }
+                    else{
+                        ausgabe+="   ";
+                    }
+                }
+                ausgabe+="|\n";
+            }
+            ausgabe+="  |";
+
+            for _x in 0..weite{
+                ausgabe+="___";
+            }
+
+            ausgabe+="|\n";
+            ausgabe+="  Iterationen: ";
+            ausgabe+=&u.to_string();
+            ausgabe+="\\";
+            ausgabe+=&iteration.to_string();
+            ausgabe+="\n";
+            stdout.write_all(ausgabe.to_string().as_bytes()).expect("Irgendwas lief falsch");
+            thread::sleep(ten_millis);
+            }
+    });
+
+    let mut stdout = stdout();
+    for _u in 0..iteration+1{
         let mut temp:Vec<Vec<Cells>>=Vec::new();
 
         for x in 0..hoehe{
@@ -46,51 +95,23 @@ fn main() {
 
         containerarray=temp.clone();
         temp=Vec::new();
-        let mut ausgabe=String::new();
         stdout.queue(crossterm::cursor::MoveTo(0,0)).expect("Irgendwas lief falsch");
-        ausgabe+="   ";
-        for _x in 0..weite{
-        ausgabe+="___";
-        }
-
-        ausgabe+=" \n";
 
         for x in 0..hoehe{
             temp.push(Vec::new());
-            ausgabe+="  |";
             for d in 0..weite{
                 let mut zelle= Cells{..containerarray[x as usize][d as usize]};
                 zelle.get_neighbors(containerarray.clone());
                 zelle.update_status();
-                if zelle.status == 1{
-                    ausgabe+=" ";
-                    ausgabe+=&sign;
-                    ausgabe+=" ";
-                }
-                else{
-                    ausgabe+="   ";
-                }
                 temp[x as usize].push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
-            ausgabe+="|\n";
         }
-
-        ausgabe+="  |";
-
-        for _x in 0..weite{
-            ausgabe+="___";
-        }
-
-        ausgabe+="|\n";
-        ausgabe+="  Iterationen: ";
-        ausgabe+=&u.to_string();
-        ausgabe+="\\";
-        ausgabe+=&iteration.to_string();
-        ausgabe+="\n";
-        stdout.write_all(ausgabe.to_string().as_bytes()).expect("Irgendwas lief falsch");
+        match sender.send(temp.clone()){
+            Ok(_p)=>{},
+            Err(k)=> println!("Something went wrong, {}",k)
+        };
         containerarray=temp.clone();
         drip =containerarray.clone();
-        thread::sleep(ten_millis);
     }
     stdout.queue(crossterm::cursor::Show).expect("Irgendwas lief falsch");
     println!("Simulation beendet! Drücke ENTER");
