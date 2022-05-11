@@ -261,10 +261,10 @@ impl Cells{
     pub fn get_vertical_value(&mut self,containerarray:Vec<Vec<Cells>>){
         if containerarray.len()>1{
             if self.pos_y==0_usize {
-                self.vertical_value = containerarray[self.pos_y + 1][self.pos_x].status + self.status;
+                self.vertical_value = containerarray[self.pos_y + 1][self.pos_x].status + self.status+containerarray[(containerarray.len() - 1) as usize][self.pos_x].status;
             }
             else if self.pos_y == (containerarray.len() - 1) as usize{
-                self.vertical_value = containerarray[self.pos_y - 1][self.pos_x].status + self.status;
+                self.vertical_value = containerarray[self.pos_y - 1][self.pos_x].status + self.status+containerarray[0][self.pos_x].status;
             }
             else{
                 self.vertical_value = self.status + containerarray[self.pos_y - 1][self.pos_x].status + containerarray[self.pos_y + 1][self.pos_x].status;
@@ -283,10 +283,10 @@ impl Cells{
             }
 
             if self.pos_x == 0_usize {
-                self.neighbors = gesamt + containerarray[self.pos_y ][self.pos_x+1].vertical_value;
+                self.neighbors = gesamt + containerarray[self.pos_y ][self.pos_x+1].vertical_value+ containerarray[self.pos_y ][(containerarray[0].len()-1 ) as usize].vertical_value;
             }
             else if self.pos_x == (containerarray[0].len()-1 ) as usize{
-                self.neighbors =gesamt + containerarray[self.pos_y][self.pos_x-1].vertical_value ;
+                self.neighbors =gesamt + containerarray[self.pos_y][self.pos_x-1].vertical_value+containerarray[self.pos_y ][0].vertical_value ;
             }
             else{
 
