@@ -10,9 +10,9 @@ fn main() {
     let _clean_up = CleanUp;
     let mut _best="y";
     let mut _h=String::new();
-    let mut containerarray:Vec<Vec<Cells>>=Vec::new();
-    let hoehe:i32 = get_height(); 
-    let weite:i32 = get_width();
+    let mut containerarray:Vec<Cells>=Vec::new();
+    let mut hoehe:i32 = get_height(); 
+    let mut weite:i32 = get_width();
     let iteration:i32= get_iterations();
     let sign:String=get_sign();
     let ten_millis = time::Duration::from_millis(get_speed());
@@ -22,14 +22,16 @@ fn main() {
     let gen = Uniform::from(0..2);
     
     for x in 0..hoehe{
-        containerarray.push(Vec::new());
         for d in 0..weite{
-            let cell=Cells{neighbors: 0,pos_x:d as usize,pos_y:x as usize,status:gen.sample(&mut rng),vertical_value:0 };
-            containerarray[x as usize].push(cell);
+            let cell=Cells{neighbors: 0,pos_x:(d as usize) as usize,pos_y:(x as usize) as usize,status:gen.sample(&mut rng),vertical_value:0 };
+            containerarray.push(cell);
         }
     }
+    weite-=1;
+    hoehe-=1;
 
-    let mut drip:Vec<Vec<Cells>>=containerarray.clone();
+
+    let mut drip=containerarray.clone();
     WinConsole::output().clear().expect("Irgendwas lief falsch");
     let (sender, receiver) = mpsc::channel();
 
@@ -37,17 +39,17 @@ fn main() {
         let mut stdout = stdout();
         stdout.queue(crossterm::cursor::Hide).expect("Irgendwas lief falsch");
         for u in 0..iteration+1{
-            let result:Vec<Vec<Cells>>=receiver.recv().unwrap();
+            let result:Vec<Cells>=receiver.recv().unwrap();
             let mut ausgabe=String::new();
             ausgabe+="   ";
-            for _x in 0..weite{
+            for _x in 0..weite-1{
                 ausgabe+="___";
             }
             ausgabe+=" \n";
             for x in 0..hoehe{
                 ausgabe+="  |";
-                for d in 0..weite{
-                    let zelle= Cells{..result[x as usize][d as usize]};
+                for d in 0..weite-1{
+                    let zelle= Cells{..result[(x*weite+d) as usize]};
                     if zelle.status == 1{
                     ausgabe+=" ";
                     ausgabe+=&sign;
@@ -61,7 +63,7 @@ fn main() {
             }
             ausgabe+="  |";
 
-            for _x in 0..weite{
+            for _x in 0..weite-1{
                 ausgabe+="___";
             }
 
@@ -78,14 +80,13 @@ fn main() {
 
     let mut stdout = stdout();
     for _u in 0..iteration+1{
-        let mut temp:Vec<Vec<Cells>>=Vec::new();
+        let mut temp:Vec<Cells>=Vec::new();
 
-        for x in 0..hoehe{
-            temp.push(Vec::new());
-            for d in 0..weite{
-                let mut zelle= Cells{..drip[x as usize][d as usize]};                
-                zelle.get_vertical_value(drip.clone());
-                temp[x as usize].push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
+        for x in 0..hoehe+1{
+            for d in 0..weite+1{
+                let mut zelle= Cells{..drip[((x*weite)+d)as usize]};                
+                zelle.get_vertical_value(drip.clone(),hoehe as usize,weite as usize);
+                temp.push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
         }
 
@@ -93,13 +94,12 @@ fn main() {
         temp=Vec::new();
         stdout.queue(crossterm::cursor::MoveTo(0,0)).expect("Irgendwas lief falsch");
 
-        for x in 0..hoehe{
-            temp.push(Vec::new());
-            for d in 0..weite{
-                let mut zelle= Cells{..containerarray[x as usize][d as usize]};
-                zelle.get_neighbors(containerarray.clone());
+        for x in 0..hoehe+1{
+            for d in 0..weite+1{
+                let mut zelle= Cells{..containerarray[(x*weite+d)as usize]};
+                zelle.get_neighbors(containerarray.clone(),weite as usize);
                 zelle.update_status();
-                temp[x as usize].push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
+                temp.push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
         }
         sender.send(temp.clone()).unwrap();
@@ -258,16 +258,16 @@ impl Cells{
         self.status=status;
     }
 
-    pub fn get_vertical_value(&mut self,containerarray:Vec<Vec<Cells>>){
+    pub fn get_vertical_value(&mut self,containerarray:Vec<Cells>,hoehe:usize,weite:usize){
         if containerarray.len()>1{
             if self.pos_y==0_usize {
-                self.vertical_value = containerarray[self.pos_y + 1][self.pos_x].status + self.status+containerarray[(containerarray.len() - 1) as usize][self.pos_x].status;
+                self.vertical_value = containerarray[(self.pos_y + 1)*weite+self.pos_x].status + self.status+containerarray[(hoehe-1*weite)+self.pos_x].status;
             }
             else if self.pos_y == (containerarray.len() - 1) as usize{
-                self.vertical_value = containerarray[self.pos_y - 1][self.pos_x].status + self.status+containerarray[0][self.pos_x].status;
+                self.vertical_value = containerarray[(self.pos_y - 1)*weite+self.pos_x].status + self.status+containerarray[self.pos_x].status;
             }
             else{
-                self.vertical_value = self.status + containerarray[self.pos_y - 1][self.pos_x].status + containerarray[self.pos_y + 1][self.pos_x].status;
+                self.vertical_value = self.status + containerarray[(self.pos_y - 1*weite)+self.pos_x].status + containerarray[(self.pos_y + 1)*weite+self.pos_x].status;
             }
         }
         else{
@@ -275,27 +275,22 @@ impl Cells{
         }
     }
 
-    pub fn get_neighbors(&mut self,containerarray:Vec<Vec<Cells>>){
+    pub fn get_neighbors(&mut self,containerarray:Vec<Cells>,weite:usize){
         let mut gesamt=self.vertical_value-self.status;
-        if containerarray[0].len()>1{
             if gesamt < 0{
                 gesamt=0;
             }
 
             if self.pos_x == 0_usize {
-                self.neighbors = gesamt + containerarray[self.pos_y ][self.pos_x+1].vertical_value+ containerarray[self.pos_y ][(containerarray[0].len()-1 ) as usize].vertical_value;
+                self.neighbors = gesamt + containerarray[self.pos_y*weite +self.pos_x+1].vertical_value+ containerarray[self.pos_y*weite +weite-2 ].vertical_value;
             }
-            else if self.pos_x == (containerarray[0].len()-1 ) as usize{
-                self.neighbors =gesamt + containerarray[self.pos_y][self.pos_x-1].vertical_value+containerarray[self.pos_y ][0].vertical_value ;
+            else if self.pos_x == weite-1{
+                self.neighbors =gesamt + containerarray[self.pos_y*weite +self.pos_x-1].vertical_value+containerarray[self.pos_y*weite ].vertical_value ;
             }
             else{
 
-                self.neighbors= gesamt + containerarray[self.pos_y][self.pos_x-1].vertical_value + containerarray[self.pos_y][self.pos_x+1].vertical_value;
+                self.neighbors= gesamt + containerarray[self.pos_y*weite+self.pos_x-1].vertical_value + containerarray[self.pos_y*weite+self.pos_x+1].vertical_value;
             }
-        }
-        else{
-            self.neighbors=0;
-        }
     }
 
     pub fn update_status(&mut self){
@@ -308,297 +303,4 @@ impl Cells{
     }
 }
 
-#[cfg(test)]
-mod eval {
 
-    use crate::Cells;
-    use crate::check_numeric;
-
-    fn set_up()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:0,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:0,status:0,vertical_value:0,neighbors:0}],
-   vec![Cells{pos_x:0,pos_y:1,status:0,vertical_value:2,neighbors:0},
-        Cells{pos_x:1,pos_y:1,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:1,status:0,vertical_value:3,neighbors:0}
-],vec![ Cells{pos_x:0,pos_y:2,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:2,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:2,status:0,vertical_value:0,neighbors:0}
-]];
-    }
-
-    fn set_up1()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:0,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:0,status:0,vertical_value:0,neighbors:0}],
-   vec![Cells{pos_x:0,pos_y:1,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:1,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:1,status:0,vertical_value:0,neighbors:0}
-],vec![ Cells{pos_x:0,pos_y:2,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:2,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:2,status:0,vertical_value:0,neighbors:0}
-]];
-    }
-
-    fn set_up2()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:0,status:0,vertical_value:3,neighbors:0},
-        Cells{pos_x:2,pos_y:0,status:0,vertical_value:0,neighbors:0}],
-   vec![Cells{pos_x:0,pos_y:1,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:1,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:1,status:0,vertical_value:0,neighbors:0}
-],vec![ Cells{pos_x:0,pos_y:2,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:2,status:0,vertical_value:3,neighbors:0},
-        Cells{pos_x:2,pos_y:2,status:1,vertical_value:3,neighbors:0}
-]];
-    }
-
-    fn set_up3()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:0,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:0,status:0,vertical_value:0,neighbors:0}],
-   vec![Cells{pos_x:0,pos_y:1,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:1,status:1,vertical_value:3,neighbors:0},
-        Cells{pos_x:2,pos_y:1,status:0,vertical_value:0,neighbors:0}
-],vec![ Cells{pos_x:0,pos_y:2,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:2,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:2,status:0,vertical_value:0,neighbors:0}
-]];
-    }
-
-    fn set_up4()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:0,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:0,status:1,vertical_value:0,neighbors:0}],
-   vec![Cells{pos_x:0,pos_y:1,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:1,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:1,status:1,vertical_value:0,neighbors:0}
-],vec![ Cells{pos_x:0,pos_y:2,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:2,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:2,status:1,vertical_value:0,neighbors:0}
-]];
-    }
-    fn set_up5()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:0,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:0,status:1,vertical_value:0,neighbors:0}],
-   vec![Cells{pos_x:0,pos_y:1,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:1,status:0,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:1,status:1,vertical_value:0,neighbors:0}
-],vec![ Cells{pos_x:0,pos_y:2,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:1,pos_y:2,status:1,vertical_value:0,neighbors:0},
-        Cells{pos_x:2,pos_y:2,status:1,vertical_value:0,neighbors:0}
-]];
-    }
-
-    fn set_up6()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:1,vertical_value:0,neighbors:0}]];
-    }
-    fn set_up7()->Vec<Vec<Cells>>{
-        return vec![vec![Cells{pos_x:0,pos_y:0,status:1,vertical_value:1,neighbors:0},Cells{pos_x:1,pos_y:0,status:1,vertical_value:1,neighbors:0},Cells{pos_x:2,pos_y:0,status:1,vertical_value:1,neighbors:0}]];
-    }
-
-    #[test]
-    fn vertical_value_one() {
-        let test=set_up();
-        let mut zelle:Cells=Cells{..test[1][1]};
-        zelle.get_vertical_value(test);
-        assert_eq!(zelle.vertical_value,1);
-    }
-
-    #[test]
-    fn vertical_value_three() {
-        let test=set_up1();
-        let mut zelle:Cells=Cells{..test[1][1]};
-        zelle.get_vertical_value(test);
-        assert_eq!(zelle.vertical_value,3);
-    }
-    #[test]
-    fn vertical_value_two() {
-        let test=set_up3();
-        let mut zelle:Cells=Cells{..test[1][1]};
-        zelle.get_vertical_value(test);
-        assert_eq!(zelle.vertical_value,2);
-    }
-
-    #[test]
-    fn vertical_value_zero() {
-        let test=set_up2();
-        let mut zelle:Cells=Cells{..test[1][1]};
-        zelle.get_vertical_value(test);
-        assert_eq!(zelle.vertical_value,0);
-    }
-    #[test]
-    fn neighbors_both_sides() {
-        let test=set_up();
-        let mut zelle:Cells=Cells{..test[1][1]};
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,5);
-    }
-    #[test]
-    fn neighbors_zero() {
-        let test=set_up1();
-        let mut zelle:Cells=Cells{..test[1][1]};
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,0);
-    }
-    #[test]
-    fn neighbors_both_left() {
-        let test=set_up2();
-        let mut zelle:Cells=Cells{..test[0][0]};
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,3);
-    }
-    #[test]
-    fn neighbors_left() {
-        let test=set_up3();
-        let mut zelle:Cells=Cells{..test[1][0]};
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,3);
-    }
-    #[test]
-    fn neighbors_bottom_right() {
-        let test=set_up2();
-        let mut zelle:Cells=Cells{..test[2][2]};
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,5);
-    }
-    #[test]
-    fn all_cells() {
-        let mut test=set_up4();
-        let mut zelle0:Cells=Cells{..test[1][0]};
-        let mut zelle:Cells=Cells{..test[1][1]};
-        let mut zelle1:Cells=Cells{..test[1][2]};
-        zelle0.get_vertical_value(test.clone());
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[1][0]=zelle0;
-        test[1][1]=zelle;
-        test[1][2]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,8);
-    }
-    #[test]
-    fn all_cells_minus_self() {
-        let mut test=set_up5();
-        let mut zelle0:Cells=Cells{..test[1][0]};
-        let mut zelle:Cells=Cells{..test[1][1]};
-        let mut zelle1:Cells=Cells{..test[1][2]};
-        zelle0.get_vertical_value(test.clone());
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[1][0]=zelle0;
-        test[1][1]=zelle;
-        test[1][2]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,8);
-    }
-    #[test]
-    fn all_cells_bottom_left() {
-        let mut test=set_up4();
-        let mut zelle:Cells=Cells{..test[2][0]};
-        let mut zelle1:Cells=Cells{..test[2][1]};
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[2][0]=zelle;
-        test[2][1]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,3);
-    }
-    #[test]
-    fn all_cells_bottom_right() {
-        let mut test=set_up4();
-        let mut zelle:Cells=Cells{..test[2][2]};
-        let mut zelle1:Cells=Cells{..test[2][1]};
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[2][2]=zelle;
-        test[2][1]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,3);
-    }
-    #[test]
-    fn all_cells_top_left() {
-        let mut test=set_up4();
-        let mut zelle:Cells=Cells{..test[0][0]};
-        let mut zelle1:Cells=Cells{..test[0][1]};
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[0][0]=zelle;
-        test[0][1]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,3);
-    }
-    #[test]
-    fn all_cells_top_right() {
-        let mut test=set_up4();
-        let mut zelle:Cells=Cells{..test[0][2]};
-        let mut zelle1:Cells=Cells{..test[0][1]};
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[0][2]=zelle;
-        test[0][1]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,3);
-    }
-    #[test]
-    fn all_cells_bottom_middle() {
-        let mut test=set_up4();
-        let mut zelle0:Cells=Cells{..test[2][0]};
-        let mut zelle:Cells=Cells{..test[2][1]};
-        let mut zelle1:Cells=Cells{..test[2][2]};
-        zelle0.get_vertical_value(test.clone());
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[2][0]=zelle0;
-        test[2][1]=zelle;
-        test[2][2]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,5);
-    }
-    #[test]
-    fn all_cells_top_middle() {
-        let mut test=set_up4();
-        let mut zelle0:Cells=Cells{..test[0][0]};
-        let mut zelle:Cells=Cells{..test[0][1]};
-        let mut zelle1:Cells=Cells{..test[0][2]};
-        zelle0.get_vertical_value(test.clone());
-        zelle.get_vertical_value(test.clone());
-        zelle1.get_vertical_value(test.clone());
-        test[0][0]=zelle0;
-        test[0][1]=zelle;
-        test[0][2]=zelle1;
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,5);
-    }
-    #[test]
-    fn single_cell_get_vertical(){
-        let test=set_up6();
-        let mut zelle:Cells=Cells{..test[0][0]};
-        zelle.get_vertical_value(test);
-        assert_eq!(zelle.vertical_value,1);
-    }
-    #[test]
-    fn single_cell_get_neighbors(){
-        let test=set_up6();
-        let mut zelle:Cells=Cells{..test[0][0]};
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,0);
-    }
-    #[test]
-    fn single_cell_row_get_neighbors(){
-        let test=set_up7();
-        let mut zelle:Cells=Cells{..test[0][1]};
-        zelle.get_neighbors(test);
-        assert_eq!(zelle.neighbors,2);
-    }
-    #[test]
-    fn check_numeric_false(){
-        assert_eq!(check_numeric("ezrtis123".to_string()),false);
-    }
-    #[test]
-    fn check_numeric_true(){
-        assert_eq!(check_numeric("123".to_string()),true);
-    }
-
-}
