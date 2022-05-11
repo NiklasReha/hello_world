@@ -128,7 +128,7 @@ pub fn get_sign()->String{
         println!("Darstellungszeichen der Zellen: ");
         let _b1 = std::io::stdin().read_line(&mut sign).unwrap();
         let sign = sign.trim_end();
-        if sign.len() == 1{
+        if sign.chars().count() == 1{
             return sign.to_string();
         }
         else{
