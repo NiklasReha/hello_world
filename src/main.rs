@@ -7,12 +7,12 @@ use win32console::console::WinConsole;
 use std::sync::mpsc;
 
 fn main() {
-    let _clean_up = CleanUp;
+   // let _clean_up = CleanUp;
     let mut _best="y";
     let mut _h=String::new();
     let mut containerarray:Vec<Cells>=Vec::new();
-    let mut hoehe:i32 = get_height(); 
-    let mut weite:i32 = get_width();
+    let hoehe:i32 = get_height(); 
+    let weite:i32 = get_width();
     let iteration:i32= get_iterations();
     let sign:String=get_sign();
     let ten_millis = time::Duration::from_millis(get_speed());
@@ -27,8 +27,7 @@ fn main() {
             containerarray.push(cell);
         }
     }
-    weite-=1;
-    hoehe-=1;
+
 
 
     let mut drip=containerarray.clone();
@@ -42,13 +41,13 @@ fn main() {
             let result:Vec<Cells>=receiver.recv().unwrap();
             let mut ausgabe=String::new();
             ausgabe+="   ";
-            for _x in 0..weite-1{
+            for _x in 0..weite{
                 ausgabe+="___";
             }
             ausgabe+=" \n";
-            for x in 0..hoehe+1{
+            for x in 0..hoehe{
                 ausgabe+="  |";
-                for d in 0..weite+1{
+                for d in 0..weite{
                     let zelle= Cells{..result[(x*weite+d) as usize]};
                     if zelle.status == 1{
                     ausgabe+=" ";
@@ -63,7 +62,7 @@ fn main() {
             }
             ausgabe+="  |";
 
-            for _x in 0..weite-1{
+            for _x in 0..weite{
                 ausgabe+="___";
             }
 
@@ -82,9 +81,9 @@ fn main() {
     for _u in 0..iteration+1{
         let mut temp:Vec<Cells>=Vec::new();
 
-        for x in 0..hoehe+1{
-            for d in 0..weite+1{
-                let mut zelle= Cells{..drip[((x*weite)+d)as usize]};                
+        for x in 0..hoehe{
+            for d in 0..weite{
+                let mut zelle= Cells{..drip[get_index(x as usize, d as usize, weite as usize)]};                
                 zelle.get_vertical_value(drip.clone(),hoehe as usize,weite as usize);
                 temp.push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
@@ -94,9 +93,9 @@ fn main() {
         temp=Vec::new();
         stdout.queue(crossterm::cursor::MoveTo(0,0)).expect("Irgendwas lief falsch");
 
-        for x in 0..hoehe+1{
-            for d in 0..weite+1{
-                let mut zelle= Cells{..containerarray[(x*weite+d)as usize]};
+        for x in 0..hoehe{
+            for d in 0..weite{
+                let mut zelle= Cells{..containerarray[get_index(x as usize,d as usize,weite as usize)]};
                 zelle.get_neighbors(containerarray.clone(),weite as usize);
                 zelle.update_status();
                 temp.push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
@@ -242,6 +241,13 @@ pub fn check_numeric(s:String)->bool{
     true
 }
 
+pub fn get_index(y:usize,x:usize,weite:usize)->usize{
+    if weite<x{
+        println!("Fehler in der Implementation");
+    }
+    y * weite + x
+}
+
 #[derive(Clone, Copy)]
 pub struct Cells{
     vertical_value: i32,
@@ -261,19 +267,20 @@ impl Cells{
     pub fn get_vertical_value(&mut self,containerarray:Vec<Cells>,hoehe:usize,weite:usize){
         if containerarray.len()>1{
             if self.pos_y==0_usize {
-                self.vertical_value = containerarray[(self.pos_y + 1)*weite+self.pos_x].status + self.status+containerarray[(hoehe*weite)+self.pos_x].status;
+                self.vertical_value = containerarray[get_index(self.pos_y+1,self.pos_x,weite)].status + self.status+containerarray[get_index(hoehe-1,self.pos_x,weite)].status;
             }
-            else if self.pos_y == (containerarray.len() - 1) as usize{
-                self.vertical_value = containerarray[(self.pos_y - 1)*weite+self.pos_x].status + self.status+containerarray[self.pos_x].status;
+            else if self.pos_y == hoehe-1{
+                self.vertical_value = containerarray[get_index(self.pos_y - 1,self.pos_x,weite)].status + self.status+containerarray[get_index(0,self.pos_x,weite)].status;
             }
             else{
-                self.vertical_value = self.status + containerarray[((self.pos_y - 1)*weite)+self.pos_x].status + containerarray[(self.pos_y + 1)*weite+self.pos_x].status;
+                self.vertical_value = self.status + containerarray[get_index(self.pos_y - 1,self.pos_x,weite)].status + containerarray[get_index(self.pos_y + 1,self.pos_x,weite)].status;
             }
         }
         else{
             self.vertical_value=self.status;
         }
     }
+
 
     pub fn get_neighbors(&mut self,containerarray:Vec<Cells>,weite:usize){
         let mut gesamt=self.vertical_value-self.status;
@@ -282,14 +289,14 @@ impl Cells{
             }
 
             if self.pos_x == 0_usize {
-                self.neighbors = gesamt + containerarray[self.pos_y*weite +self.pos_x+1].vertical_value+ containerarray[self.pos_y*weite +weite].vertical_value;
+                self.neighbors = gesamt + containerarray[get_index(self.pos_y,self.pos_x+1,weite)].vertical_value+ containerarray[get_index(self.pos_y,weite-1,weite)].vertical_value;
             }
-            else if self.pos_x == weite{
-                self.neighbors =gesamt + containerarray[self.pos_y*weite +self.pos_x-1].vertical_value+containerarray[self.pos_y*weite ].vertical_value ;
+            else if self.pos_x == weite-1{
+                self.neighbors =gesamt + containerarray[get_index(self.pos_y,self.pos_x-1,weite)].vertical_value+containerarray[get_index(self.pos_y,0,weite) ].vertical_value ;
             }
             else{
 
-                self.neighbors= gesamt + containerarray[self.pos_y*weite+self.pos_x-1].vertical_value + containerarray[self.pos_y*weite+self.pos_x+1].vertical_value;
+                self.neighbors= gesamt + containerarray[get_index(self.pos_y,self.pos_x-1,weite)].vertical_value + containerarray[get_index(self.pos_y,self.pos_x+1,weite)].vertical_value;
             }
     }
 
