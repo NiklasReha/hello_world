@@ -4,7 +4,6 @@ use std::io::{Write};
 use std::io::stdout;
 use crossterm::{QueueableCommand};
 use win32console::console::WinConsole;
-use term_size;
 use std::sync::mpsc;
 
 fn main() {
@@ -37,7 +36,7 @@ fn main() {
     thread::spawn(move|| {
         let mut stdout = stdout();
         stdout.queue(crossterm::cursor::Hide).expect("Irgendwas lief falsch");
-        for u in 0..iteration.clone()+1{
+        for u in 0..iteration+1{
             let result:Vec<Vec<Cells>>=receiver.recv().unwrap();
             let mut ausgabe=String::new();
             ausgabe+="   ";
@@ -168,15 +167,15 @@ pub fn get_height()->i32{
         }
         if check_numeric(height.to_string()){
             let  result=height.parse::<i32>().unwrap();
-            if result<he-3 && result>2{
+            if result<he-6 && result>2{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-7);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-7);
             println!();
         }
     }
@@ -219,15 +218,15 @@ pub fn get_width()->i32{
         }
         if check_numeric(width.to_string()){
             let result=width.parse::<i32>().unwrap();
-            if result<we/3 && result>2{
+            if result<we/3-2 && result>2{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-1);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-3);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-1);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-3);
             println!();
         }
     }
