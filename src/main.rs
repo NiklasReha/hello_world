@@ -46,9 +46,9 @@ fn main() {
                 ausgabe+="___";
             }
             ausgabe+=" \n";
-            for x in 0..hoehe{
+            for x in 0..hoehe+1{
                 ausgabe+="  |";
-                for d in 0..weite-1{
+                for d in 0..weite+1{
                     let zelle= Cells{..result[(x*weite+d) as usize]};
                     if zelle.status == 1{
                     ausgabe+=" ";
@@ -103,8 +103,8 @@ fn main() {
             }
         }
         sender.send(temp.clone()).unwrap();
-        containerarray=temp.clone();
-        drip =containerarray.clone();
+        containerarray=temp;
+        drip =containerarray;
     }
     stdout.queue(crossterm::cursor::Show).expect("Irgendwas lief falsch");
     println!("Simulation beendet! Drücke ENTER");
@@ -261,13 +261,13 @@ impl Cells{
     pub fn get_vertical_value(&mut self,containerarray:Vec<Cells>,hoehe:usize,weite:usize){
         if containerarray.len()>1{
             if self.pos_y==0_usize {
-                self.vertical_value = containerarray[(self.pos_y + 1)*weite+self.pos_x].status + self.status+containerarray[(hoehe-1*weite)+self.pos_x].status;
+                self.vertical_value = containerarray[(self.pos_y + 1)*weite+self.pos_x].status + self.status+containerarray[(hoehe*weite)+self.pos_x].status;
             }
             else if self.pos_y == (containerarray.len() - 1) as usize{
                 self.vertical_value = containerarray[(self.pos_y - 1)*weite+self.pos_x].status + self.status+containerarray[self.pos_x].status;
             }
             else{
-                self.vertical_value = self.status + containerarray[(self.pos_y - 1*weite)+self.pos_x].status + containerarray[(self.pos_y + 1)*weite+self.pos_x].status;
+                self.vertical_value = self.status + containerarray[((self.pos_y - 1)*weite)+self.pos_x].status + containerarray[(self.pos_y + 1)*weite+self.pos_x].status;
             }
         }
         else{
@@ -282,9 +282,9 @@ impl Cells{
             }
 
             if self.pos_x == 0_usize {
-                self.neighbors = gesamt + containerarray[self.pos_y*weite +self.pos_x+1].vertical_value+ containerarray[self.pos_y*weite +weite-2 ].vertical_value;
+                self.neighbors = gesamt + containerarray[self.pos_y*weite +self.pos_x+1].vertical_value+ containerarray[self.pos_y*weite +weite].vertical_value;
             }
-            else if self.pos_x == weite-1{
+            else if self.pos_x == weite{
                 self.neighbors =gesamt + containerarray[self.pos_y*weite +self.pos_x-1].vertical_value+containerarray[self.pos_y*weite ].vertical_value ;
             }
             else{
