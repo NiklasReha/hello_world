@@ -164,15 +164,15 @@ pub fn get_height()->i32{
         }
         if check_numeric(height.to_string()){
             let  result=height.parse::<i32>().unwrap();
-            if result<he-4 && result>2{
+            if result<he-3 && result>2{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-5);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-5);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
             println!();
         }
     }
