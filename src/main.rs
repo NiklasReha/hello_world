@@ -122,18 +122,18 @@ impl Drop for CleanUp {
 }
 
 pub fn get_sign()->String{
-    loop{
-        let mut sign=String::new();
-        println!("Darstellungszeichen der Zellen: ");
-        let _b1 = std::io::stdin().read_line(&mut sign).unwrap();
-        let sign = sign.trim_end();
-        if sign.chars().count() == 1{
-            return format!("{} ",sign.to_string());
-        }
-        else{
-            return Emoji("🎃","").to_string();
-        }
+
+    let mut sign=String::new();
+    println!("Darstellungszeichen der Zellen: ");
+    let _b1 = std::io::stdin().read_line(&mut sign).unwrap();
+    let sign = sign.trim_end();
+    if sign.chars().count() == 1{
+        return format!("{} ",sign);
     }
+    else{
+        return Emoji("🎃","").to_string();
+    }
+
 }
 
 pub fn get_speed()->u64{
@@ -266,7 +266,7 @@ impl Cells{
         self.status=status;
     }
 
-    pub fn get_vertical_value(&mut self,containerarray:&Vec<Cells>,hoehe:usize,weite:usize){
+    pub fn get_vertical_value(&mut self,containerarray:&[Cells],hoehe:usize,weite:usize){
         if containerarray.len()>1{
             if self.pos_y==0_usize {
                 self.vertical_value = containerarray[get_index(self.pos_y+1,self.pos_x,weite)].status + self.status+containerarray[get_index(hoehe-1,self.pos_x,weite)].status;
@@ -284,7 +284,7 @@ impl Cells{
     }
 
 
-    pub fn get_neighbors(&mut self,containerarray:&Vec<Cells>,weite:usize){
+    pub fn get_neighbors(&mut self,containerarray:&[Cells],weite:usize){
         let mut gesamt=self.vertical_value-self.status;
             if gesamt < 0{
                 gesamt=0;
