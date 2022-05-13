@@ -309,7 +309,7 @@ impl Cells{
         }
         else if self.neighbors == 3 || self.dead <= 0{
             self.status = 1;
-            self.dead=1000=;
+            self.dead=10000;
         }
     }
 }
