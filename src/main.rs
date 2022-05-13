@@ -164,6 +164,9 @@ pub fn get_height()->i32{
         } else {
             println!("Unable to get term size :(")
         }
+        if height=="m"{
+            return he-4
+        }
         if check_numeric(height.to_string()){
             let  result=height.parse::<i32>().unwrap();
             if result<he-3 && result>2{
@@ -214,6 +217,10 @@ pub fn get_width()->i32{
             we=w as i32;
         } else {
             println!("Unable to get term size :(")
+        }
+
+        if width=="m"{
+            return we/2-1
         }
         
         if check_numeric(width.to_string()){
