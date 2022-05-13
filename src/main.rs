@@ -5,6 +5,7 @@ use std::io::stdout;
 use crossterm::{QueueableCommand};
 use win32console::console::WinConsole;
 use std::sync::mpsc;
+use console::Emoji;
 
 fn main() {
    // let _clean_up = CleanUp;
@@ -23,7 +24,7 @@ fn main() {
     
     for x in 0..hoehe{
         for d in 0..weite{
-            let cell=Cells{neighbors: 0,pos_x:(d as usize) as usize,pos_y:(x as usize) as usize,status:gen.sample(&mut rng),vertical_value:0 };
+            let cell=Cells{neighbors: 0,pos_x:(d as usize) as usize,pos_y:(x as usize) as usize,status:gen.sample(&mut rng),vertical_value:0,dead:1000 };
             containerarray.push(cell);
         }
     }
@@ -40,30 +41,28 @@ fn main() {
         for u in 0..iteration+1{
             let result:Vec<Cells>=receiver.recv().unwrap();
             let mut ausgabe=String::new();
-            ausgabe+="   ";
+            ausgabe+="  ";
             for _x in 0..weite{
-                ausgabe+="___";
+                ausgabe+="__";
             }
             ausgabe+=" \n";
             for x in 0..hoehe{
-                ausgabe+="  |";
+                ausgabe+=" |";
                 for d in 0..weite{
                     let zelle= Cells{..result[(x*weite+d) as usize]};
                     if zelle.status == 1{
-                    ausgabe+=" ";
                     ausgabe+=&sign;
-                    ausgabe+=" ";
                     }
                     else{
-                        ausgabe+="   ";
+                        ausgabe+="  ";
                     }
                 }
                 ausgabe+="|\n";
             }
-            ausgabe+="  |";
+            ausgabe+=" |";
 
             for _x in 0..weite{
-                ausgabe+="___";
+                ausgabe+="__";
             }
 
             ausgabe+="|\n";
@@ -75,6 +74,8 @@ fn main() {
             stdout.write_all(ausgabe.to_string().as_bytes()).expect("Irgendwas lief falsch");
             thread::sleep(ten_millis);
             }
+            println!();
+            println!("Simulation beendet! Drücke ENTER");
     });
 
     let mut stdout = stdout();
@@ -106,7 +107,6 @@ fn main() {
         drip =containerarray;
     }
     stdout.queue(crossterm::cursor::Show).expect("Irgendwas lief falsch");
-    println!("Simulation beendet! Drücke ENTER");
     let _b1 = std::io::stdin().read_line(&mut _h).unwrap();
     WinConsole::output().clear().expect("Irgendwas lief falsch");
 }
@@ -128,10 +128,10 @@ pub fn get_sign()->String{
         let _b1 = std::io::stdin().read_line(&mut sign).unwrap();
         let sign = sign.trim_end();
         if sign.chars().count() == 1{
-            return sign.to_string();
+            return format!("{} ",sign.to_string());
         }
         else{
-            println!("Bitte gib nur ein Zeichen ein!")
+            return Emoji("💥","").to_string();
         }
     }
 }
@@ -154,17 +154,18 @@ pub fn get_speed()->u64{
 pub fn get_height()->i32{
 
     loop{
-        let mut height=String::new();
-        println!("Hoehe des Feldes: ");
-        let _b1 = std::io::stdin().read_line(&mut height).unwrap();
-        let height = height.trim_end();
+        //let mut height=String::new();
+        //println!("Hoehe des Feldes: ");
+        //let _b1 = std::io::stdin().read_line(&mut height).unwrap();
+        //let height = height.trim_end();
         let mut he=0;
         if let Some((_w, h)) = term_size::dimensions() {
             he=h as i32;
         } else {
             println!("Unable to get term size :(")
         }
-        if check_numeric(height.to_string()){
+        return he-6;
+        /*if check_numeric(height.to_string()){
             let  result=height.parse::<i32>().unwrap();
             if result<he-6 && result>2{
             return result
@@ -176,7 +177,7 @@ pub fn get_height()->i32{
         else{
             println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-7);
             println!();
-        }
+        }*/
     }
 }
 
@@ -205,16 +206,19 @@ pub fn get_iterations()->i32{
 pub fn get_width()->i32{
 
     loop{
-        let mut width=String::new();
+       /* let mut width=String::new();
         println!("Weite des Feldes: ");
         let _b1 = std::io::stdin().read_line(&mut width).unwrap();
         let width = width.trim_end();
+        */
         let mut we=0;
         if let Some((w, _h)) = term_size::dimensions() {
             we=w as i32;
         } else {
             println!("Unable to get term size :(")
         }
+        return we/3-3;
+        /*
         if check_numeric(width.to_string()){
             let result=width.parse::<i32>().unwrap();
             if result<we/3-2 && result>2{
@@ -227,7 +231,7 @@ pub fn get_width()->i32{
         else{
             println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-3);
             println!();
-        }
+        }*/
     }
     }
 
@@ -255,6 +259,7 @@ pub struct Cells{
     pos_x: usize,
     pos_y: usize,
     neighbors: i32,
+    dead:i32,
 }
 
 impl Cells{
@@ -301,11 +306,13 @@ impl Cells{
     }
 
     pub fn update_status(&mut self){
+        self.dead -= 1;
         if self.neighbors>3 || self.neighbors<2{
             self.status = 0;
         }
-        else if self.neighbors == 3{
+        else if self.neighbors == 3 || self.dead <= 0{
             self.status = 1;
+            self.dead=1000;
         }
     }
 }
