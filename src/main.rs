@@ -131,7 +131,7 @@ pub fn get_sign()->String{
             return format!("{} ",sign.to_string());
         }
         else{
-            return Emoji("🦗","").to_string();
+            return Emoji("🎃","").to_string();
         }
     }
 }
