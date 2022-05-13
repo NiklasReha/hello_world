@@ -39,6 +39,7 @@ fn main() {
         let mut stdout = stdout();
         stdout.queue(crossterm::cursor::Hide).expect("Irgendwas lief falsch");
         for u in 0..iteration+1{
+            stdout.queue(crossterm::cursor::MoveTo(0,0)).expect("Irgendwas lief falsch");
             let result:Vec<Cells>=receiver.recv().unwrap();
             let mut ausgabe=String::new();
             ausgabe+="  ";
@@ -85,23 +86,22 @@ fn main() {
         for x in 0..hoehe{
             for d in 0..weite{
                 let mut zelle= Cells{..drip[get_index(x as usize, d as usize, weite as usize)]};                
-                zelle.get_vertical_value(drip.clone(),hoehe as usize,weite as usize);
+                zelle.get_vertical_value(&drip,hoehe as usize,weite as usize);
                 temp.push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
         }
 
-        containerarray=temp.clone();
+        containerarray=temp;
         temp=Vec::new();
-        stdout.queue(crossterm::cursor::MoveTo(0,0)).expect("Irgendwas lief falsch");
 
         for x in 0..hoehe{
             for d in 0..weite{
                 let mut zelle= Cells{..containerarray[get_index(x as usize,d as usize,weite as usize)]};
-                zelle.get_neighbors(containerarray.clone(),weite as usize);
+                zelle.get_neighbors(&containerarray,weite as usize);
                 zelle.update_status();
                 temp.push(Cells{neighbors : 0, pos_y : x as usize, pos_x : d as usize, ..zelle});
             }
-        }
+        }      
         sender.send(temp.clone()).unwrap();
         containerarray=temp;
         drip =containerarray;
@@ -154,30 +154,29 @@ pub fn get_speed()->u64{
 pub fn get_height()->i32{
 
     loop{
-        //let mut height=String::new();
-        //println!("Hoehe des Feldes: ");
-        //let _b1 = std::io::stdin().read_line(&mut height).unwrap();
-        //let height = height.trim_end();
+        let mut height=String::new();
+        println!("Hoehe des Feldes: ");
+        let _b1 = std::io::stdin().read_line(&mut height).unwrap();
+        let height = height.trim_end();
         let mut he=0;
         if let Some((_w, h)) = term_size::dimensions() {
             he=h as i32;
         } else {
             println!("Unable to get term size :(")
         }
-        return he-6;
-        /*if check_numeric(height.to_string()){
+        if check_numeric(height.to_string()){
             let  result=height.parse::<i32>().unwrap();
-            if result<he-6 && result>2{
+            if result<he-3 && result>2{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-7);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-7);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
             println!();
-        }*/
+        }
     }
 }
 
@@ -206,32 +205,30 @@ pub fn get_iterations()->i32{
 pub fn get_width()->i32{
 
     loop{
-       /* let mut width=String::new();
+        let mut width=String::new();
         println!("Weite des Feldes: ");
         let _b1 = std::io::stdin().read_line(&mut width).unwrap();
         let width = width.trim_end();
-        */
         let mut we=0;
         if let Some((w, _h)) = term_size::dimensions() {
             we=w as i32;
         } else {
             println!("Unable to get term size :(")
         }
-        return we/3-3;
-        /*
+        
         if check_numeric(width.to_string()){
             let result=width.parse::<i32>().unwrap();
-            if result<we/3-2 && result>2{
+            if result<we/2 && result>2{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-3);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-1);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/3-3);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-1);
             println!();
-        }*/
+        }
     }
     }
 
@@ -269,7 +266,7 @@ impl Cells{
         self.status=status;
     }
 
-    pub fn get_vertical_value(&mut self,containerarray:Vec<Cells>,hoehe:usize,weite:usize){
+    pub fn get_vertical_value(&mut self,containerarray:&Vec<Cells>,hoehe:usize,weite:usize){
         if containerarray.len()>1{
             if self.pos_y==0_usize {
                 self.vertical_value = containerarray[get_index(self.pos_y+1,self.pos_x,weite)].status + self.status+containerarray[get_index(hoehe-1,self.pos_x,weite)].status;
@@ -287,7 +284,7 @@ impl Cells{
     }
 
 
-    pub fn get_neighbors(&mut self,containerarray:Vec<Cells>,weite:usize){
+    pub fn get_neighbors(&mut self,containerarray:&Vec<Cells>,weite:usize){
         let mut gesamt=self.vertical_value-self.status;
             if gesamt < 0{
                 gesamt=0;
