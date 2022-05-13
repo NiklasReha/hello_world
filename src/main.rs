@@ -24,7 +24,7 @@ fn main() {
     
     for x in 0..hoehe{
         for d in 0..weite{
-            let cell=Cells{neighbors: 0,pos_x:(d as usize) as usize,pos_y:(x as usize) as usize,status:gen.sample(&mut rng),vertical_value:0,dead:1000 };
+            let cell=Cells{neighbors: 0,pos_x:(d as usize) as usize,pos_y:(x as usize) as usize,status:gen.sample(&mut rng),vertical_value:0,dead:10000 };
             containerarray.push(cell);
         }
     }
@@ -309,7 +309,7 @@ impl Cells{
         }
         else if self.neighbors == 3 || self.dead <= 0{
             self.status = 1;
-            self.dead=1000;
+            self.dead=1000=;
         }
     }
 }
