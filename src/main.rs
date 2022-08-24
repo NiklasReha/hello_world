@@ -143,7 +143,7 @@ pub fn get_speed()->u64{
         let _b1 = std::io::stdin().read_line(&mut speed).unwrap();
         let speed = speed.trim_end();
         if check_numeric(speed.to_string()){
-            return speed.parse::<u64>().unwrap();
+            return speed.parse::<u64>().unwrap_or(0);
         }
         else{
             println!("Bitte gib einen Wert größer als 10 an!")
@@ -164,20 +164,20 @@ pub fn get_height()->i32{
         } else {
             println!("Unable to get term size :(")
         }
-        if height=="m"{
-            return he-4
+        if height=="m"||height ==""{
+            return he-5
         }
         if check_numeric(height.to_string()){
             let  result=height.parse::<i32>().unwrap();
-            if result<he-3 && result>2{
+            if result<he-6 && result>2{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-6);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-4);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-6);
             println!();
         }
     }
@@ -192,7 +192,7 @@ pub fn get_iterations()->i32{
         let height = height.trim_end();
         if height.len()<10{
             if check_numeric(height.to_string()){
-                return height.parse::<i32>().unwrap();
+                return height.parse::<i32>().unwrap_or(1000);
             }
             else{
                 println!("Bitte gib nur ganze Zahlen als Wert ein!");
@@ -219,21 +219,21 @@ pub fn get_width()->i32{
             println!("Unable to get term size :(")
         }
 
-        if width=="m"{
-            return we/2-1
+        if width=="m" || width==""{
+            return we/2-3
         }
         
         if check_numeric(width.to_string()){
             let result=width.parse::<i32>().unwrap();
-            if result<we/2 && result>2{
+            if result<we/2-4 && result>2{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-1);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-4);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-1);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-4);
             println!();
         }
     }
