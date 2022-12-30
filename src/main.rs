@@ -24,7 +24,7 @@ fn main() {
     
     for x in 0..hoehe{
         for d in 0..weite{
-            let cell=Cells{neighbors: 0,pos_x:(d as usize) as usize,pos_y:(x as usize) as usize,status:gen.sample(&mut rng),vertical_value:0,dead:10000 };
+            let cell=Cells{neighbors: 0,pos_x:(d as usize),pos_y:(x as usize),status:gen.sample(&mut rng),vertical_value:0,dead:10000 };
             containerarray.push(cell);
         }
     }
@@ -42,13 +42,15 @@ fn main() {
             stdout.queue(crossterm::cursor::MoveTo(0,0)).expect("Irgendwas lief falsch");
             let result:Vec<Cells>=receiver.recv().unwrap();
             let mut ausgabe=String::new();
-            ausgabe+="  ";
+            ausgabe+=" ";
+            ausgabe+="┏";
             for _x in 0..weite{
-                ausgabe+="__";
+                ausgabe+="━━";
             }
+            ausgabe+="┓";
             ausgabe+=" \n";
             for x in 0..hoehe{
-                ausgabe+=" |";
+                ausgabe+=" ┃";
                 for d in 0..weite{
                     let zelle= Cells{..result[(x*weite+d) as usize]};
                     if zelle.status == 1{
@@ -58,15 +60,15 @@ fn main() {
                         ausgabe+="  ";
                     }
                 }
-                ausgabe+="|\n";
+                ausgabe+="┃\n";
             }
-            ausgabe+=" |";
+            ausgabe+=" ┗";
 
             for _x in 0..weite{
-                ausgabe+="__";
+                ausgabe+="━━";
             }
 
-            ausgabe+="|\n";
+            ausgabe+="┛\n";
             ausgabe+="  Iterationen: ";
             ausgabe+=&u.to_string();
             ausgabe+="\\";
@@ -128,10 +130,10 @@ pub fn get_sign()->String{
     let _b1 = std::io::stdin().read_line(&mut sign).unwrap();
     let sign = sign.trim_end();
     if sign.chars().count() == 1{
-        return format!("{} ",sign);
+        format!("{} ",sign)
     }
     else{
-        return Emoji("🎃","").to_string();
+        Emoji("🎃","").to_string()
     }
 
 }
@@ -164,7 +166,7 @@ pub fn get_height()->i32{
         } else {
             println!("Unable to get term size :(")
         }
-        if height=="m"||height ==""{
+        if height=="m"||height.is_empty(){
             return he-5
         }
         if check_numeric(height.to_string()){
@@ -173,11 +175,11 @@ pub fn get_height()->i32{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-6);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-7);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-6);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",he-7);
             println!();
         }
     }
@@ -219,7 +221,7 @@ pub fn get_width()->i32{
             println!("Unable to get term size :(")
         }
 
-        if width=="m" || width==""{
+        if width=="m" || width.is_empty(){
             return we/2-3
         }
         
@@ -229,11 +231,11 @@ pub fn get_width()->i32{
             return result
             }
             else{
-                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-4);
+                println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",(we/2-4)-1);
             }
         }
         else{
-            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",we/2-4);
+            println!("Bitte gib nur ganze Zahlen als Wert ein,und maximal {} als größten Wert",(we/2-4)-1);
             println!();
         }
     }
